@@ -1,0 +1,218 @@
+:root {
+  --bg: #f1f5f9;
+  /* slate-100 */
+  --panel: #ffffff;
+  /* white */
+  --muted: #64748b;
+  /* slate-500 */
+  --text: #0f172a;
+  /* slate-900 */
+  --primary: #2563eb;
+  /* blue-600 */
+  --primary-2: #1d4ed8;
+  /* blue-700 */
+  --ok: #10b981;
+  /* emerald-500 */
+  --warn: #f59e0b;
+  /* amber-500 */
+  --err: #ef4444;
+  /* red-500 */
+  --border: #e5e7eb;
+  /* gray-200 */
+  --ring: rgba(37, 99, 235, .25);
+  --radius: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  line-height: 1.45;
+}
+
+.wrap {
+  width: 100%;
+  max-width: 980px;
+  padding: 32px 20px;
+}
+
+/* Page header to match the dashboard tone */
+.page-head {
+  margin-bottom: 18px;
+}
+
+.kicker {
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: .4px;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 6px 0 2px;
+  font-size: clamp(22px, 2.3vw, 28px);
+  font-weight: 800;
+  letter-spacing: .2px;
+  color: #0f172a;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Card matches the dashboard cards */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .03);
+  overflow: hidden;
+}
+
+/* Form */
+form {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+}
+
+fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 700px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+}
+
+label {
+  font-size: 13px;
+  color: #475569;
+  display: block;
+  margin: 0 0 6px;
+  font-weight: 600;
+}
+
+.ctr {
+  position: relative;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #ffffff;
+  color: var(--text);
+  outline: none;
+  font-size: 14px;
+  transition: box-shadow .15s ease, border-color .15s ease;
+}
+
+input::placeholder {
+  color: #94a3b8;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.terms input {
+  width: auto;
+  margin-top: 2px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 22px 22px;
+}
+
+.btn {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  background: var(--primary);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  letter-spacing: .2px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+  transition: background .2s ease;
+}
+
+.btn:hover {
+  background: var(--primary-2);
+}
+
+.btn.secondary {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid var(--border);
+}
+
+.legal {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: left;
+  margin: 0;
+  padding: 0 22px 22px;
+}
+
+.req {
+  color: var(--warn);
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+/* Container to keep the form at a reasonable width like dashboard cards */
+.max {
+  max-width: 740px;
+  margin: 0 auto;
+}
