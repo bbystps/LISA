@@ -1,3 +1,15 @@
+<?php
+session_start();
+
+if (empty($_SESSION['user'])) {
+  header('Location: ../../login/index.php');
+  exit;
+}
+
+$name = $_SESSION['user']['name'];
+$studentId = $_SESSION['user']['student_id'];
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -9,16 +21,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"> -->
 
   <link rel="stylesheet" href="../../plugins/datatables/datatables.css">
-  <link rel="stylesheet" href="../../includes/css/admin.css">
-  <link rel="stylesheet" href="../../includes/css/modal.css">
+  <link rel="stylesheet" href="../../includes/css/users.css">
+  <link rel="stylesheet" href="../../includes/css/user_modal.css">
   <link rel="stylesheet" href="../../includes/css/icon.css">
-  <link rel="stylesheet" href="../../plugins/toastr/toastr.css">
 </head>
 
-<script src="../../mqtt/mqttws31.js"></script>
-<?php include("../../mqtt/transaction_mqtt.php"); ?>
-
-<body onload="client.connect(options);">
+<body>
   <div class="app">
 
     <?php include("../sidenav.php"); ?>
@@ -26,7 +34,7 @@
     <main class="main">
       <div class="topbar">
         <div></div>
-        <div class="hello">Welcome, Administrator</div>
+        <div class="hello">Welcome, <?= htmlspecialchars($name) ?></div>
         <!-- <div><a class="logout" href="logout.php">Logout</a></div> -->
       </div>
 
@@ -34,33 +42,23 @@
 
         <div class="toolbar">
           <div class="left">
-            <div class="page-title">Transaction Management</div>
+            <div class="page-title">Transaction History</div>
           </div>
-          <div class="right">
-            <!-- NEW: GO button + counter -->
-            <button class="btn primary" id="btnGoDeliver" disabled>
-              GO (D:<span id="selDeliver">0</span> / F:<span id="selFetch">0</span> | Total <span id="selCount">0</span>)
-            </button>
-
-          </div>
+          <!-- <div class="right">
+            <div class="borrow-transact">Books Borrowed/Reserved: 0/3</div>
+          </div> -->
         </div>
 
         <div class="table-wrap">
           <table id="booksTable" class="display nowrap table" cellspacing="0" style="width:100%">
             <thead>
               <tr>
-                <th>id</th>
-                <th>student_id</th>
-                <th>book_id</th>
-                <th>Name</th>
                 <th>Title</th>
-                <th>Author</th>
+                <th>Category</th>
                 <th>Borrow Date</th>
                 <th>Return Date</th>
-                <th>Status</th>
-                <th>Flag</th>
-                <th>Location</th>
-                <th>Actions</th>
+                <th>Status/Type</th>
+                <th>Transact Date</th>
               </tr>
             </thead>
             <tbody>
@@ -73,11 +71,10 @@
   </div>
 
   <script src="../../includes/js/jquery.min.js"></script>
-  <script src="../../plugins/toastr/toastr.min.js"></script>
   <script src="../../plugins/datatables/datatables.js"></script>
 
   <?php include("../sidenav_script.php"); ?>
-  <?php include("transactions_script.php"); ?>
+  <?php include("history_script.php"); ?>
 
 </body>
 

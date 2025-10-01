@@ -1,9 +1,8 @@
 <script>
   (function() {
     const $table = $('#booksTable');
-    // Config: separate caps
-    const MAX_DELIVER = 3;
-    const MAX_FETCH = 3;
+    // Config: total items allowed (deliver + fetch)
+    const MAX_SELECTION_TOTAL = 3;
 
     // Two selection maps
     const selectedDeliver = new Map(); // id -> {id, student_id, book_id, location}
@@ -169,13 +168,9 @@
           // Unselect from its bag
           bag.delete(id);
         } else {
-          // Enforce per-bag caps
-          if (isDeliver && selectedDeliver.size >= MAX_DELIVER) {
-            toastr.warning(`Max ${MAX_DELIVER} selected for Deliver.`);
-            return;
-          }
-          if (!isDeliver && selectedFetch.size >= MAX_FETCH) {
-            toastr.warning(`Max ${MAX_FETCH} selected for Fetch.`);
+          // Enforce a shared total cap
+          if (totalSelected() >= MAX_SELECTION_TOTAL) {
+            toastr.warning(`You can only select up to ${MAX_SELECTION_TOTAL} items total (Deliver + Fetch).`);
             return;
           }
           bag.set(id, {
@@ -210,7 +205,7 @@
           success: function() {
             // Mirror your current MQTT behavior
             const payload = JSON.stringify({
-              id: id,
+              transaction_id: id,
               task: action,
               student_id: studentId,
               book_id: bookId,
@@ -256,7 +251,7 @@
             cache: false,
             success: function() {
               succeeded.push({
-                id: t.id,
+                transaction_id: t.id,
                 task: actionName, // "deliver" or "fetch"
                 student_id: t.student_id,
                 book_id: t.book_id,

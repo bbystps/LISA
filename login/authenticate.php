@@ -52,7 +52,7 @@ try {
     'ts'         => time(),
   ];
 
-  header('Location: ../users');
+  header('Location: ../users/books');
   exit;
 } catch (PDOException $e) {
   // Optionally log $e->getMessage()

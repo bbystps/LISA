@@ -1,0 +1,140 @@
+/* ===== Modal (compact, borderless) ===== */
+.modal {
+  position: fixed; inset: 0;
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.modal.is-open { display: flex; }
+
+.modal__overlay {
+  position: absolute; inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+/* Borderless dialog */
+.modal__dialog {
+  position: relative;
+  width: min(720px, 92vw);
+  max-height: 86vh;
+  overflow: auto;
+  background: var(--panel);
+  border: none; /* remove side borders */
+  border-radius: var(--radius);
+  box-shadow: 0 28px 80px rgba(0,0,0,.24);
+  animation: modalIn .16s ease-out;
+}
+@keyframes modalIn {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+
+.modal__header {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal__header h2 { margin: 0; font-weight: 800; font-size: 18px; }
+
+.modal__close {
+  display: inline-grid; place-items: center;
+  width: 32px; height: 32px; border-radius: 10px;
+  background: #fff; border: 1px solid rgba(0,0,0,.08);
+  cursor: pointer;
+}
+
+.modal__body { padding: 14px; }
+
+/* =========================================================
+   Form (tight spacing, no fieldset borders)
+   Apply to BOTH #studentRegModal and #bookRegModal
+   ========================================================= */
+:is(#studentRegModal, #bookRegModal) fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0 0 6px;
+}
+
+:is(#studentRegModal, #bookRegModal) .row {
+  display: grid;
+  gap: 6px;                          /* reduced gap */
+  grid-template-columns: 1fr 1fr;    /* two columns */
+  margin-bottom: 2px;                /* tighter vertical spacing */
+}
+@media (max-width: 720px) {
+  :is(#studentRegModal, #bookRegModal) .row {
+    grid-template-columns: 1fr;
+  }
+}
+
+:is(#studentRegModal, #bookRegModal) .ctr label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 4px;                /* tighter label spacing */
+  font-size: 13px;
+}
+
+/* Make full-width inputs span all columns */
+:is(#studentRegModal, #bookRegModal) .ctr.full {
+  grid-column: 1 / -1;
+}
+
+:is(#studentRegModal, #bookRegModal) .req {
+  color: var(--err);
+  margin-left: 3px;
+}
+
+/* Inputs: slightly shorter, compact padding */
+:is(#studentRegModal, #bookRegModal) input[type="text"],
+:is(#studentRegModal, #bookRegModal) input[type="email"],
+:is(#studentRegModal, #bookRegModal) input[type="password"],
+:is(#studentRegModal, #bookRegModal) select {
+  width: 100%;
+  height: 38px;                      /* was 44px */
+  padding: 0 10px;                   /* tighter */
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: #fff;
+  font: inherit;
+  color: var(--text);
+}
+
+/* Hints & errors: smaller, tighter */
+:is(#studentRegModal, #bookRegModal) .hint {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 2px;                   /* tighter */
+}
+:is(#studentRegModal, #bookRegModal) .err-msg {
+  min-height: 14px;
+  font-size: 11.5px;
+  color: var(--err);
+  margin-top: 2px;                   /* tighter */
+}
+
+/* Actions row (tighter) */
+:is(#studentRegModal, #bookRegModal) .actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+:is(#studentRegModal, #bookRegModal) .btn {
+  height: 40px; padding: 0 14px;     /* match input height */
+}
+
+/* Form alert */
+:is(#studentRegModal, #bookRegModal) .form-alert {
+  display: none;
+  margin: 6px 0 4px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 13px;
+  border: 1px solid #fecaca;
+}
+:is(#studentRegModal, #bookRegModal) .form-alert.show {
+  display: block;
+}

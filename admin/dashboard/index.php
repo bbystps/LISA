@@ -19,20 +19,8 @@
 
 <body onload="client.connect(options);">
   <div class="app">
-    <aside class="side">
-      <div class="brand">
-        <i class="mdi--library"></i>
-        <span>LISA</span>
-      </div>
-      <nav class="nav">
-        <a class="active">… <span>Dashboard</span></a>
-        <a href="../students">… <span>Students</span></a>
-        <a href="../books">… <span>Books</span></a>
-        <a href="../transactions">… <span>Transactions</span></a>
-        <a href="../penalties">… <span>Penalties</span></a>
-      </nav>
 
-    </aside>
+    <?php include("../sidenav.php"); ?>
 
     <main class="main">
       <div class="topbar">
@@ -51,10 +39,7 @@
               <div class="num" data-kpi="total-books">1,284</div>
             </div>
             <div class="ic blue" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                <path d="M20 22V6a2 2 0 0 0-2-2H7a3 3 0 0 0-3 3v14" />
-              </svg>
+              <i class="total--books"></i>
             </div>
           </div>
 
@@ -64,10 +49,7 @@
               <div class="num" data-kpi="active-students">436</div>
             </div>
             <div class="ic teal" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M16 11c1.657 0 3-1.79 3-4s-1.343-4-3-4-3 1.79-3 4 1.343 4 3 4z" />
-                <path d="M2 20c0-3.866 3.582-7 8-7" />
-              </svg>
+              <i class="active--students"></i>
             </div>
           </div>
 
@@ -77,10 +59,7 @@
               <div class="num" data-kpi="borrowed-now">93</div>
             </div>
             <div class="ic gray" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M18 8h-7a4 4 0 1 0 0 8h7" />
-                <polyline points="14 4 18 8 14 12" />
-              </svg>
+              <i class="loan--books"></i>
             </div>
           </div>
 
@@ -90,11 +69,7 @@
               <div class="num" style="color:#dc2626" data-kpi="overdue-now">7</div>
             </div>
             <div class="ic red" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 9v4" />
-                <path d="M12 17h.01" />
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-              </svg>
+              <i class="calendar-overdue"></i>
             </div>
           </div>
         </section>
@@ -178,7 +153,8 @@
   <script src="../../includes/js/jquery.min.js"></script>
   <script src="../../plugins/toastr/toastr.min.js"></script>
   <script src="../../plugins/datatables/datatables.js"></script>
-
+  <?php include("../sidenav_script.php"); ?>
+  <?php include("dashboard_script.php"); ?>
 </body>
 
 </html>

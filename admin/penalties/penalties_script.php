@@ -1,180 +1,193 @@
-<?php // penalties_script.php 
+<?php // /admin/pages/penalties_script.php 
 ?>
 <script>
-  (function() {
-    if (!window.jQuery || !jQuery.fn || !jQuery.fn.dataTable) {
-      console.warn('DataTables not found. Load jQuery and DataTables before penalties_script.php');
-      return;
+  (function($) {
+    function peso(n) {
+      return '₱' + (Number(n || 0).toFixed(2));
     }
 
-    if (jQuery.fn.dataTable.isDataTable('#penaltiesTable')) {
-      jQuery('#penaltiesTable').DataTable().destroy(true);
+    function esc(s) {
+      return String(s ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
     }
 
-    // ===== Helpers =====
-    const strip = s => (s || '').toString().replace(/<[^>]*>/g, '');
-    const peso = n => '₱' + (Number(n || 0).toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }));
-
-    function parseDMY(s) {
-      // accepts dd/mm/yyyy
-      const m = (s || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-      if (!m) return null;
-      const d = +m[1],
-        mo = +m[2] - 1,
-        y = +m[3];
-      return new Date(y, mo, d);
+    function fmtPHDate(d) {
+      if (!d) return '';
+      const x = new Date(d);
+      if (isNaN(x)) return esc(d);
+      return x.toLocaleDateString('en-PH');
     }
 
-    function daysBetween(a, b) { // whole days
-      const ms = 24 * 60 * 60 * 1000;
-      return Math.floor((a - b) / ms);
-    }
+    let dt = null;
 
-    function getSettings() {
-      const ls = JSON.parse(localStorage.getItem('penalty_settings') || '{}');
-      const rate = Number(document.getElementById('penaltyRate')?.value ?? ls.rate ?? 5);
-      const grace = Number(document.getElementById('gracePeriod')?.value ?? ls.grace ?? 1);
-      return {
-        rate,
-        grace
-      };
-    }
+    function loadData() {
+      $.ajax({
+        type: 'POST',
+        url: 'penalties_data.php', // NOTE: page is in /admin/pages/
+        data: {
+          id: 0,
+          action: 'load'
+        },
+        success: function(resp) {
+          if (!resp?.success) {
+            alert(resp?.error || 'Failed to load');
+            return;
+          }
 
-    function computeRow(tr, today = new Date()) {
-      const tds = tr.querySelectorAll('td');
-      const dueStr = strip(tds[2]?.innerHTML);
-      const due = parseDMY(dueStr);
-      if (!due) return {
-        daysLate: 0,
-        penalty: 0
-      };
+          // KPIs
+          $('#kpiTotal').text(peso(resp.kpis.total));
+          $('#kpiPaid').text(peso(resp.kpis.paid));
+          $('#kpiOutstanding').text(peso(resp.kpis.outstanding));
 
-      const {
-        rate,
-        grace
-      } = getSettings();
-      const late = Math.max(0, daysBetween(today, due));
-      const billable = Math.max(0, late - Math.max(0, grace));
-      const amount = billable * Math.max(0, rate);
-      return {
-        daysLate: late,
-        penalty: amount
-      };
-    }
+          // Settings
+          if (resp.settings) {
+            $('#penaltyRate').val(resp.settings.daily_rate);
+            $('#gracePeriod').val(resp.settings.grace_days);
+          }
 
-    function refreshKPIs() {
-      const rows = Array.from(document.querySelectorAll('#penaltiesTable tbody tr'));
-      let total = 0,
-        paid = 0,
-        outstanding = 0;
-
-      rows.forEach(tr => {
-        const statusText = strip(tr.querySelector('td:nth-child(6)')?.innerText).toLowerCase();
-        const penStr = strip(tr.querySelector('td:nth-child(5)')?.innerText).replace(/[₱,]/g, '');
-        const val = Number(penStr || 0);
-        total += val;
-        if (statusText.includes('paid')) paid += val;
-        else outstanding += val;
-      });
-
-      document.getElementById('kpiTotal').innerText = peso(total);
-      document.getElementById('kpiPaid').innerText = peso(paid);
-      document.getElementById('kpiOutstanding').innerText = peso(outstanding);
-    }
-
-    function recalcAll() {
-      const today = new Date();
-      document.querySelectorAll('#penaltiesTable tbody tr').forEach(tr => {
-        const {
-          daysLate,
-          penalty
-        } = computeRow(tr, today);
-        tr.querySelector('td:nth-child(4)').innerText = daysLate;
-        tr.querySelector('td:nth-child(5)').innerText = peso(penalty);
-        // If no penalty, show Paid/OK style if already Paid; keep Unpaid if marked as such.
-        const statusCell = tr.querySelector('td:nth-child(6)');
-        const isPaid = /paid/i.test(statusCell?.innerText || '');
-        if (!isPaid && penalty <= 0) {
-          statusCell.innerHTML = '<span class="badge available">OK</span>';
-        } else if (!isPaid && penalty > 0) {
-          statusCell.innerHTML = '<span class="badge reserved">Unpaid</span>';
+          // Table
+          renderTable(resp.rows || []);
+        },
+        error: function(xhr) {
+          alert(xhr.responseText || 'Server error.');
         }
       });
-      refreshKPIs();
     }
 
-    // ===== DataTable =====
-    const dt = jQuery('#penaltiesTable').DataTable({
-      dom: 't<"dt-footer"ip>',
-      pageLength: 10,
-      lengthChange: false,
-      order: [],
-      columnDefs: [{
-          targets: [6],
-          orderable: false
-        } // Actions
-      ]
-    });
+    function renderTable(rows) {
+      const data = rows.map(r => {
+        const actions = `
+        <div class="actions">
+          <button class="icon-btn pay" data-id="${r.id}" title="Mark as Paid" ${r.status==='Paid'?'disabled':''}>✓</button>
+          <button class="icon-btn del" data-id="${r.id}" title="Delete">🗑</button>
+        </div>
+      `;
+        return [
+          esc(r.student_name) + ' (' + esc(r.student_id) + ')',
+          esc(r.book_title) + ' (' + esc(r.book_id) + ')',
+          fmtPHDate(r.due_date),
+          esc(r.days_late),
+          peso(r.amount),
+          (r.status === 'Paid' ?
+            '<span class="badge available">Paid</span>' :
+            '<span class="badge reserved">Unpaid</span>'),
+          actions
+        ];
+      });
 
-    // Initial calc
-    recalcAll();
-
-    // ===== Settings handlers =====
-    const rateIn = document.getElementById('penaltyRate');
-    const graceIn = document.getElementById('gracePeriod');
-
-    function persistAndRecalc() {
-      const rate = Number(rateIn?.value || 0);
-      const grace = Number(graceIn?.value || 0);
-      // (A) Persist locally for demo; replace with your PHP endpoint if needed.
-      localStorage.setItem('penalty_settings', JSON.stringify({
-        rate,
-        grace
-      }));
-
-      // (B) If you want to post to server instead:
-      // fetch('penalty_save_settings.php', { method:'POST', body: new URLSearchParams({ rate, grace }) });
-
-      recalcAll();
-    }
-
-    rateIn?.addEventListener('change', persistAndRecalc);
-    graceIn?.addEventListener('change', persistAndRecalc);
-    document.getElementById('btnSaveSettings')?.addEventListener('click', persistAndRecalc);
-
-    // On load, try to restore saved settings
-    (() => {
-      const saved = JSON.parse(localStorage.getItem('penalty_settings') || '{}');
-      if (saved.rate != null) rateIn.value = saved.rate;
-      if (saved.grace != null) graceIn.value = saved.grace;
-      recalcAll();
-    })();
-
-    // ===== Row actions =====
-    document.getElementById('penaltiesTable')?.addEventListener('click', (e) => {
-      const btn = e.target.closest('button.icon-btn');
-      if (!btn) return;
-
-      const rowEl = btn.closest('tr');
-      const row = dt.row(rowEl);
-
-      if (btn.classList.contains('pay')) {
-        // Mark as Paid
-        const statusCell = rowEl.querySelector('td:nth-child(6)');
-        statusCell.innerHTML = '<span class="badge available">Paid</span>';
-        recalcAll();
+      if (dt) {
+        dt.clear().rows.add(data).draw();
         return;
       }
+      $('#penaltiesTable tbody').empty();
 
-      if (btn.classList.contains('del')) {
+      dt = $('#penaltiesTable').DataTable({
+        data,
+        columns: [{
+            title: 'Student'
+          },
+          {
+            title: 'Book'
+          },
+          {
+            title: 'Due Date'
+          },
+          {
+            title: 'Days Late'
+          },
+          {
+            title: 'Penalty'
+          },
+          {
+            title: 'Status'
+          },
+          {
+            title: 'Actions',
+            orderable: false,
+            searchable: false,
+            width: '140px'
+          }
+        ],
+        pageLength: 10,
+        order: [
+          [5, 'asc'],
+          [2, 'asc']
+        ]
+      });
+
+      // Actions
+      $('#penaltiesTable').on('click', '.icon-btn.pay', function() {
+        const id = $(this).data('id');
+        $.ajax({
+          type: 'POST',
+          url: 'update.php',
+          data: {
+            id,
+            action: 'mark_paid'
+          },
+          success: function(resp) {
+            if (!resp?.success) {
+              alert(resp?.error || 'Failed');
+              return;
+            }
+            loadData();
+          },
+          error: function(xhr) {
+            alert(xhr.responseText || 'Server error.');
+          }
+        });
+      });
+
+      $('#penaltiesTable').on('click', '.icon-btn.del', function() {
+        const id = $(this).data('id');
         if (!confirm('Delete this penalty record?')) return;
-        row.remove().draw();
-        recalcAll();
-        return;
-      }
+        $.ajax({
+          type: 'POST',
+          url: 'update.php',
+          data: {
+            id,
+            action: 'delete'
+          },
+          success: function(resp) {
+            if (!resp?.success) {
+              alert(resp?.error || 'Failed');
+              return;
+            }
+            loadData();
+          },
+          error: function(xhr) {
+            alert(xhr.responseText || 'Server error.');
+          }
+        });
+      });
+    }
+
+    // Save Settings
+    $('#btnSaveSettings').on('click', function() {
+      const rate = parseFloat($('#penaltyRate').val() || '0');
+      const grace = parseInt($('#gracePeriod').val() || '0', 10);
+
+      $.ajax({
+        type: 'POST',
+        url: 'update.php',
+        data: {
+          id: 0,
+          action: 'save_settings',
+          rate,
+          grace
+        },
+        success: function(resp) {
+          if (!resp?.success) {
+            alert(resp?.error || 'Failed to save');
+            return;
+          }
+          loadData(); // reload KPIs + rows with new settings (if you recalc on server later)
+        },
+        error: function(xhr) {
+          alert(xhr.responseText || 'Server error.');
+        }
+      });
     });
-  })();
+
+    $(document).ready(loadData);
+  })(jQuery);
 </script>

@@ -8,27 +8,16 @@
   <!-- <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"> -->
 
-  <link rel="stylesheet" href="../../includes/css/admin.css">
-  <link rel="stylesheet" href="../../includes/css/icon.css">
   <link rel="stylesheet" href="../../plugins/datatables/datatables.css">
+  <link rel="stylesheet" href="../../includes/css/admin.css">
+  <link rel="stylesheet" href="../../includes/css/modal.css">
+  <link rel="stylesheet" href="../../includes/css/icon.css">
 </head>
 
 <body>
   <div class="app">
-    <aside class="side">
-      <div class="brand">
-        <i class="mdi--library"></i>
-        <span>LISA</span>
-      </div>
-      <nav class="nav">
-        <a href="../dashboard">… <span>Dashboard</span></a>
-        <a href="../students">… <span>Students</span></a>
-        <a class="active">… <span>Books</span></a>
-        <a href="../transactions">… <span>Transactions</span></a>
-        <a href="../penalties">… <span>Penalties</span></a>
-      </nav>
 
-    </aside>
+    <?php include("../sidenav.php"); ?>
 
     <main class="main">
       <div class="topbar">
@@ -39,79 +28,30 @@
 
       <div class="content">
 
-        <h1 class="page-title">Books Management</h1>
-
         <div class="toolbar">
           <div class="left">
-            <input id="bookSearch" class="input" type="search" placeholder="Search books by title, author, or ISBN…">
-            <select id="bookCategory" class="select">
-              <option value="">All Categories</option>
-              <option>Fiction</option>
-              <option>Non-Fiction</option>
-              <option>Computer Science</option>
-              <option>History</option>
-            </select>
-            <button id="btnSearch" class="btn">Search</button>
+            <div class="page-title">Books Management</div>
           </div>
           <div class="right">
             <button class="btn add" id="btnAddBook">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" aria-hidden="true">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
               Add Book
             </button>
           </div>
         </div>
 
         <div class="table-wrap">
-          <table id="booksTable" class="modern display" style="width:100%">
+          <table id="booksTable" class="display nowrap table" cellspacing="0" style="width:100%">
             <thead>
               <tr>
-                <th style="min-width:260px">Title</th>
-                <th>Author</th>
                 <th>ISBN</th>
+                <th>Title</th>
+                <th>Author</th>
                 <th>Category</th>
                 <th>Status</th>
-                <th style="width:140px">Actions</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td><a href="#" class="table-title">The Great Gatsby</a></td>
-                <td>F. Scott Fitzgerald</td>
-                <td>978-0-7432-7356-5</td>
-                <td>Fiction</td>
-                <td><span class="badge available">Available</span></td>
-                <td class="actions">
-                  <button class="icon-btn edit" title="Edit">…</button>
-                  <button class="icon-btn move" title="Transfer">…</button>
-                  <button class="icon-btn del" title="Delete">…</button>
-                </td>
-              </tr>
-              <tr>
-                <td><a href="#" class="table-title">To Kill a Mockingbird</a></td>
-                <td>Harper Lee</td>
-                <td>978-0-06-112008-4</td>
-                <td>Fiction</td>
-                <td><span class="badge available">Available</span></td>
-                <td class="actions">
-                  <button class="icon-btn edit" title="Edit">…</button>
-                  <button class="icon-btn move" title="Transfer">…</button>
-                  <button class="icon-btn del" title="Delete">…</button>
-                </td>
-              </tr>
-              <tr>
-                <td><a href="#" class="table-title">1984</a></td>
-                <td>George Orwell</td>
-                <td>978-0-452-28423-4</td>
-                <td>Fiction</td>
-                <td><span class="badge available">Available</span></td>
-                <td class="actions">
-                  <button class="icon-btn edit" title="Edit">…</button>
-                  <button class="icon-btn move" title="Transfer">…</button>
-                  <button class="icon-btn del" title="Delete">…</button>
-                </td>
-              </tr>
             </tbody>
           </table>
         </div>
@@ -120,10 +60,79 @@
     </main>
   </div>
 
+
+  <!-- Book Registration Modal -->
+  <div class="modal" id="bookRegModal" aria-hidden="true">
+    <div class="modal__overlay" data-close-modal></div>
+
+    <!-- Dialog is the a11y surface -->
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="reg_title" tabindex="-1">
+      <div class="modal__header">
+        <h2 id="reg_title">Book Registration</h2>
+        <button class="modal__close" type="button" title="Close" aria-label="Close" data-close-modal>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal__body">
+        <!-- your provided form -->
+        <form id="studentRegForm" action="register.php" method="post" novalidate>
+          <fieldset>
+            <div class="row">
+              <div class="ctr">
+                <label for="book_id">ISBN<span class="req" aria-hidden="true">*</span></label>
+                <input id="book_id" name="book_id" type="text" inputmode="numeric"
+                  placeholder="e.g., 04AABBCCDDEE" minlength="3" maxlength="64" required>
+                <p class="err-msg" data-err-for="book_id"></p>
+              </div>
+
+              <div class="ctr">
+                <label for="category">Category<span class="req" aria-hidden="true">*</span></label>
+                <select id="category" name="category" required>
+                  <option value="" disabled selected>Select your course…</option>
+                  <option value="Fiction">Fiction</option>
+                  <option value="Non-Fiction">Non-Fiction</option>
+                  <option value="Computer Science">Computer Science</option>
+                  <option value="History">History</option>
+                </select>
+                <p class="err-msg" data-err-for="category"></p>
+              </div>
+
+              <!-- Full width name field -->
+              <div class="ctr full">
+                <label for="title">Title<span class="req" aria-hidden="true">*</span></label>
+                <input id="title" name="title" type="text" placeholder="Juan Dela Cruz" maxlength="256" required>
+                <p class="err-msg" data-err-for="title"></p>
+              </div>
+              <!-- Full width name field -->
+              <div class="ctr full">
+                <label for="author">Author<span class="req" aria-hidden="true">*</span></label>
+                <input id="author" name="author" type="text" placeholder="Juan Dela Cruz" maxlength="256" required>
+                <p class="err-msg" data-err-for="author"></p>
+              </div>
+            </div>
+          </fieldset>
+
+          <div id="formAlert" class="form-alert" role="alert" aria-live="polite"></div>
+
+          <div class="actions">
+            <button class="btn secondary" type="reset">Reset</button>
+            <button class="btn" type="submit" id="regSubmitBtn">Register Book</button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
   <script src="../../includes/js/jquery.min.js"></script>
   <script src="../../plugins/datatables/datatables.js"></script>
 
+  <?php include("../sidenav_script.php"); ?>
   <?php include("books_script.php"); ?>
+  <?php include("modal_script.php"); ?>
 </body>
 
 </html>

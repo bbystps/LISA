@@ -36,13 +36,11 @@
           <div class="left">
             <div class="page-title">Transaction Management</div>
           </div>
-          <div class="right">
-            <!-- NEW: GO button + counter -->
-            <button class="btn primary" id="btnGoDeliver" disabled>
-              GO (D:<span id="selDeliver">0</span> / F:<span id="selFetch">0</span> | Total <span id="selCount">0</span>)
+          <!-- <div class="right">
+            <button class="btn add" id="btnAddBook">
+              Add Book
             </button>
-
-          </div>
+          </div> -->
         </div>
 
         <div class="table-wrap">

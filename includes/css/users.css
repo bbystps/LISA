@@ -5,7 +5,7 @@
 
 /* ---------- Theme variables ---------- */
 :root {
-  --bg: #f1f5f9;        /* slate-100 */
+  --bg: #96c8fa;        /* slate-100 */
   --panel: #ffffff;     /* white */
   --muted: #64748b;     /* slate-500 */
   --text: #0f172a;      /* slate-900 */
@@ -206,7 +206,6 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 0 0 16px;
 }
 .toolbar .left { display: flex; gap: 12px; flex: 1 1 auto; }
 .toolbar .right { margin-left: auto; }
@@ -283,10 +282,8 @@ body {
 .table-btn {
   background-color: #fff;
   border: none;
-  padding: 5px 7px;
+  padding: 3px 5px;
   cursor: pointer;
-  border-radius: 999px;
-  border: 1px solid var(--teal);
 }
 
 .table-btn:hover {
@@ -452,3 +449,10 @@ body {
   .item{ background: #0b1220; border-color: #1f2937; }
   .empty{ background: #0b1220; border-color: #1f2937; }
 }
+
+.badge{
+  display:inline-block; padding:2px 8px; border-radius:999px;
+  font-size:12px; font-weight:700; border:1px solid var(--border); background:#fff;
+}
+.badge-reserved{ color: var(--warn); border-color: color-mix(in oklab, var(--warn) 40%, var(--border)); }
+.badge-borrowed{ color: var(--primary); border-color: color-mix(in oklab, var(--primary) 40%, var(--border)); }

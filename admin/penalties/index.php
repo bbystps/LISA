@@ -13,20 +13,8 @@
 
 <body>
   <div class="app">
-    <aside class="side">
-      <div class="brand">
-        <i class="mdi--library"></i>
-        <span>LISA</span>
-      </div>
-      <nav class="nav">
-        <a href="../dashboard">… <span>Dashboard</span></a>
-        <a href="../students">… <span>Students</span></a>
-        <a href="../books">… <span>Books</span></a>
-        <a href="../transactions">… <span>Transactions</span></a>
-        <a class="active">… <span>Penalties</span></a>
-      </nav>
-    </aside>
 
+    <?php include("../sidenav.php"); ?>
     <main class="main">
       <div class="topbar">
         <div></div>
@@ -107,42 +95,7 @@
               </tr>
             </thead>
             <tbody>
-              <!-- Sample rows (replace with server data or keep for demo) -->
-              <tr data-status="Unpaid">
-                <td>John Doe</td>
-                <td>1984</td>
-                <td>01/09/2025</td>
-                <td></td>
-                <td></td>
-                <td><span class="badge reserved">Unpaid</span></td>
-                <td class="actions">
-                  <button class="icon-btn pay" title="Mark as Paid">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  </button>
-                  <button class="icon-btn del" title="Delete">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="3 6 5 6 21 6" />
-                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                      <path d="M10 11v6M14 11v6" />
-                      <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
-                    </svg>
-                  </button>
-                </td>
-              </tr>
-              <tr data-status="Paid">
-                <td>Jane Smith</td>
-                <td>The Great Gatsby</td>
-                <td>15/08/2025</td>
-                <td></td>
-                <td></td>
-                <td><span class="badge available">Paid</span></td>
-                <td class="actions">
-                  <button class="icon-btn pay" title="Mark as Paid">✓</button>
-                  <button class="icon-btn del" title="Delete">…</button>
-                </td>
-              </tr>
+
             </tbody>
           </table>
         </div>
@@ -154,6 +107,7 @@
   <script src="../../includes/js/jquery.min.js"></script>
   <script src="../../plugins/datatables/datatables.js"></script>
 
+  <?php include("../sidenav_script.php"); ?>
   <?php include("penalties_script.php"); ?>
 </body>
 

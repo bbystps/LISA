@@ -34,15 +34,13 @@
 
         <div class="toolbar">
           <div class="left">
-            <div class="page-title">Transaction Management</div>
+            <div class="page-title">History</div>
           </div>
-          <div class="right">
-            <!-- NEW: GO button + counter -->
-            <button class="btn primary" id="btnGoDeliver" disabled>
-              GO (D:<span id="selDeliver">0</span> / F:<span id="selFetch">0</span> | Total <span id="selCount">0</span>)
+          <!-- <div class="right">
+            <button class="btn add" id="btnAddBook">
+              Add Book
             </button>
-
-          </div>
+          </div> -->
         </div>
 
         <div class="table-wrap">
@@ -57,10 +55,8 @@
                 <th>Author</th>
                 <th>Borrow Date</th>
                 <th>Return Date</th>
+                <th>Transaction Date</th>
                 <th>Status</th>
-                <th>Flag</th>
-                <th>Location</th>
-                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -77,7 +73,7 @@
   <script src="../../plugins/datatables/datatables.js"></script>
 
   <?php include("../sidenav_script.php"); ?>
-  <?php include("transactions_script.php"); ?>
+  <?php include("history_script.php"); ?>
 
 </body>
 

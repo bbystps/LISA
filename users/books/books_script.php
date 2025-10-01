@@ -45,15 +45,23 @@
           searchable: false,
           width: 140,
           render: function(data, type, row) {
-            const sidRaw = row.ISBN ?? '';
-            const sid = String(sidRaw).replace(/"/g, '&quot;'); // escape quotes for attr
-            return `
-            <div class="row-actions">
-              <button class="table-btn edit" data-sid="${sid}" title="Edit">Edit</button>
-              <button class="table-btn del"  data-sid="${sid}" title="Delete">Delete</button>
-            </div>`;
-          }
+            const sid = String(row.ISBN ?? '').replace(/"/g, '&quot;');
+            const title = String(row.Title ?? '').replace(/"/g, '&quot;');
 
+            const disabled = (row.Status === "Borrowed" || row.Status === "Reserved");
+            const btnText = disabled ? "Unavailable" : "Borrow";
+
+            return `
+              <div class="row-actions">
+                <button class="table-btn borrow"
+                        data-sid="${sid}"
+                        data-title="${title}"
+                        title="Borrow"
+                        ${disabled ? "disabled" : ""}>
+                  ${btnText}
+                </button>
+              </div>`;
+          }
         } // 5 
       ],
       columnDefs: [{
@@ -75,18 +83,11 @@
     // Expose the table so modal_script can reload after create
     window.booksTable = dt;
 
-    $table.on('click', '.table-btn.edit', function() {
-      const sid = this.getAttribute('data-sid');
-      alert('Edit book: ' + sid);
-    });
-
-    $table.on('click', '.table-btn.del', function() {
-      const sid = this.getAttribute('data-sid');
-      if (confirm(`Delete book ${sid}? This cannot be undone.`)) {
-        alert('(stub) Deleted ' + sid);
-        // then: dt.ajax.reload(null, false);
-      }
-    });
-
+    // $table.on('click', '.table-btn.borrow', function() {
+    //   console.log("clicked");
+    //   const sid = this.getAttribute('data-sid');
+    //   const title = this.getAttribute('data-title');
+    //   openBorrowModal(sid, title);
+    // });
   })();
 </script>
