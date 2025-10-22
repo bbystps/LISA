@@ -52,21 +52,22 @@
             return used;
           }
         },
-        { // 6 Actions
-          data: null,
-          orderable: false,
-          searchable: false,
-          width: 140,
-          render: function(data, type, row) {
-            const sid = row.student_id ? String(row.student_id).replace(/"/g, '&quot;') : '';
-            return `
-              <div class="row-actions">
-                <button class="table-btn edit" data-sid="${sid}" title="Edit">Edit</button>
-                <button class="table-btn del" data-sid="${sid}" title="Delete">Delete</button>
-              </div>`;
-          }
-        }
+        // { // 6 Actions
+        //   data: null,
+        //   orderable: false,
+        //   searchable: false,
+        //   width: 140,
+        //   render: function(data, type, row) {
+        //     const sid = row.student_id ? String(row.student_id).replace(/"/g, '&quot;') : '';
+        //     return `
+        //       <div class="row-actions">
+
+        //         <button class="table-btn del" data-sid="${sid}" title="Delete">Delete</button>
+        //       </div>`;
+        //   }
+        // }
       ],
+      // <button class="table-btn edit" data-sid="${sid}" title="Edit">Edit</button>
       columnDefs: [{
           targets: 0,
           visible: false,

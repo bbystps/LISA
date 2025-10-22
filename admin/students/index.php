@@ -45,10 +45,9 @@
                 <th>Email</th>
                 <th>Course</th>
                 <th>Books Borrowed</th>
-                <th>Actions</th>
+                <!-- <th>Actions</th> -->
               </tr>
             </thead>
-
             <tbody>
             </tbody>
           </table>

@@ -29,10 +29,13 @@
     var options = {
         timeout: 3,
         keepAliveInterval: 60,
-        userName: 'mqtt',
-        password: 'ICPHmqtt!',
+        userName: '*****',
+        password: '*****',
         onSuccess: function() {
             client.subscribe('LISA/TransactionUpdated', {
+                qos: 0
+            });
+            client.subscribe('LISA/RobotMobility', {
                 qos: 0
             });
             toastr.success('', 'Server OK!');
@@ -72,6 +75,16 @@
             // ✅ reload only the table data (stay on same page)
             if (window.transactionsTable) {
                 window.transactionsTable.ajax.reload(null, false);
+            }
+        } else if (message.destinationName == "LISA/RobotMobility") {
+            if (x == "Enabled") {
+                // Disable Go Button
+                document.getElementById("btnGoDeliver").disabled = true;
+                toastr.info("Robot Mobility Enabled — GO button disabled.");
+            } else if (x == "Disabled") {
+                // Enable Go Button
+                document.getElementById("btnGoDeliver").disabled = false;
+                toastr.info("Robot Mobility Disabled — GO button enabled.");
             }
         }
     }

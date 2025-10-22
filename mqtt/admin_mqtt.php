@@ -29,8 +29,8 @@
     var options = {
         timeout: 3,
         keepAliveInterval: 60,
-        userName: 'mqtt',
-        password: 'ICPHmqtt!',
+        userName: '*****',
+        password: '*****',
         onSuccess: function() {
             client.subscribe('LISA/timeIN', {
                 qos: 0

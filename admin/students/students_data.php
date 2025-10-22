@@ -18,7 +18,7 @@ $sql = "
     s.name            AS name,
     s.email           AS email,
     s.course          AS course,
-    COALESCE(SUM(CASE WHEN t.status = 'Borrowed' THEN 1 ELSE 0 END), 0) AS borrowed
+    COALESCE(SUM(CASE WHEN t.status = 'Borrowed' AND (t.FLAG = 'ACTIVE' OR t.FLAG = 'PENDING') THEN 1 ELSE 0 END), 0) AS borrowed
   FROM students s
   LEFT JOIN transactions t
          ON t.student_id = s.student_id

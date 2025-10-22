@@ -452,3 +452,11 @@ body {
   .item{ background: #0b1220; border-color: #1f2937; }
   .empty{ background: #0b1220; border-color: #1f2937; }
 }
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none; /* belt & suspenders */
+  filter: none;         /* cancel :hover brightness */
+  background-color: red;
+}

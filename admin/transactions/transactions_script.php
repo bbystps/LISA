@@ -5,12 +5,16 @@
     const MAX_DELIVER = 3;
     const MAX_FETCH = 3;
 
-    // Two selection maps
+    // Selection bags
     const selectedDeliver = new Map(); // id -> {id, student_id, book_id, location}
     const selectedFetch = new Map(); // id -> {id, student_id, book_id, location}
+    const selectedRetry = new Map(); // id -> {id}    // NEW: for Delivering/Fetching
 
-    const $btnGo = $('#btnGoDeliver'); // reuse same GO button
+    const $btnGo = $('#btnGoDeliver');
+    const $btnRetry = $('#btnRetry'); // NEW
     const $selCount = $('#selCount');
+    const $selDeliver = $('#selDeliver');
+    const $selFetch = $('#selFetch');
 
     function totalSelected() {
       return selectedDeliver.size + selectedFetch.size;
@@ -19,7 +23,14 @@
     function updateGoButton() {
       const n = totalSelected();
       $selCount.text(n);
-      $btnGo.prop('disabled', n === 0);
+      $selDeliver.text(selectedDeliver.size);
+      $selFetch.text(selectedFetch.size);
+      // $btnGo.prop('disabled', n === 0);
+    }
+
+    // NEW: enable/disable Retry button
+    function updateRetryButton() {
+      // $btnRetry.prop('disabled', selectedRetry.size === 0);
     }
 
     const dt = $table.DataTable({
@@ -76,15 +87,20 @@
           defaultContent: '-'
         }, // 10
         {
+          data: 'rfid',
+          defaultContent: '-'
+        }, // 11
+        {
           data: null,
           orderable: false,
           searchable: false,
-          width: 220,
+          width: 260,
           render: function(data, type, row) {
             const sid = String(row.student_id ?? '').replace(/"/g, '&quot;');
             const bid = String(row.book_id ?? '').replace(/"/g, '&quot;');
             const loc = String(row.Location ?? '').replace(/"/g, '&quot;');
             const id = String(row.id ?? '').replace(/"/g, '&quot;');
+            const rfid = String(row.rfid ?? '').replace(/"/g, '&quot;');
 
             const flag = String(row.Flag ?? '').trim().toUpperCase();
             const status = String(row.Status ?? '').trim().toLowerCase();
@@ -112,6 +128,11 @@
                 label = 'Acknowledge';
                 action = 'ack_returned';
                 disabled = false;
+              } else if (status === 'delivering' || status === 'fetching') {
+                action = 'mark_retry';
+                const isMarked = selectedRetry.has(id);
+                label = isMarked ? 'Retry Selected' : 'Mark Retry';
+                disabled = false;
               }
             }
 
@@ -120,9 +141,8 @@
 
             const selectedClass =
               (action === 'select_deliver' && selectedDeliver.has(id)) ||
-              (action === 'select_fetch' && selectedFetch.has(id)) ?
-              ' selected' :
-              '';
+              (action === 'select_fetch' && selectedFetch.has(id)) ||
+              (action === 'mark_retry' && selectedRetry.has(id)) ? ' selected' : '';
 
             return `
               <div class="row-actions">
@@ -131,6 +151,7 @@
                         data-student_id="${sid}"
                         data-book_id="${bid}"
                         data-location="${loc}"
+                        data-rfid="${rfid}" 
                         ${actAttr}
                         title="${label}" ${disAttr}>${label}</button>
               </div>`;
@@ -138,7 +159,7 @@
         }
       ],
       columnDefs: [{
-        targets: [0, 1, 2, 9],
+        targets: [0, 1, 2, 9, 11],
         visible: false,
         searchable: false
       }]
@@ -146,8 +167,11 @@
 
     window.transactionsTable = dt;
 
-    // Redraw keeps the "Selected" look based on selectedDeliver map
-    dt.on('draw', updateGoButton);
+    // Keep buttons in sync on redraw
+    dt.on('draw', function() {
+      updateGoButton();
+      // updateRetryButton(); // NEW
+    });
 
     // --- Row button handler ---
     $table.on('click', '.table-btn.primary', function() {
@@ -157,16 +181,17 @@
       const studentId = this.getAttribute('data-student_id');
       const bookId = this.getAttribute('data-book_id');
       const location = this.getAttribute('data-location');
+      const rfid = this.getAttribute('data-rfid');
       const action = this.getAttribute('data-action');
 
       if (!action) return;
+
       // 1) SELECTION TOGGLE FOR DELIVERY / FETCH
       if (action === 'select_deliver' || action === 'select_fetch') {
         const isDeliver = (action === 'select_deliver');
         const bag = isDeliver ? selectedDeliver : selectedFetch;
 
         if (bag.has(id)) {
-          // Unselect from its bag
           bag.delete(id);
         } else {
           // Enforce per-bag caps
@@ -180,7 +205,8 @@
           }
           bag.set(id, {
             id,
-            student_id: studentId,
+            rfid,
+            // student_id: studentId,
             book_id: bookId,
             location
           });
@@ -191,9 +217,26 @@
         this.textContent = nowSelected ?
           (isDeliver ? 'Selected (Deliver)' : 'Selected (Fetch)') :
           (isDeliver ? 'Select (Deliver)' : 'Select (Fetch)');
-
         this.classList.toggle('selected', nowSelected);
+
         updateGoButton();
+        return;
+      }
+
+      // 1b) NEW: toggle mark for Retry (Delivering/Fetching)
+      if (action === 'mark_retry') {
+        if (selectedRetry.has(id)) {
+          selectedRetry.delete(id);
+          this.textContent = 'Mark Retry';
+          this.classList.remove('selected');
+        } else {
+          selectedRetry.set(id, {
+            id
+          });
+          this.textContent = 'Retry Selected';
+          this.classList.add('selected');
+        }
+        updateRetryButton();
         return;
       }
 
@@ -210,7 +253,7 @@
           success: function() {
             // Mirror your current MQTT behavior
             const payload = JSON.stringify({
-              id: id,
+              id,
               task: action,
               student_id: studentId,
               book_id: bookId,
@@ -233,17 +276,17 @@
 
     // --- GO button: batch both Deliver and Fetch selections ---
     $btnGo.on('click', async function() {
+      console.log("GO ROBOT!");
       if (totalSelected() === 0) return;
 
-      $btnGo.prop('disabled', true);
+      // $btnGo.prop('disabled', true);
 
-      // Snapshot current selections (so redraws won't affect while we process)
+      // Snapshot selections
       const deliverTasks = Array.from(selectedDeliver.values());
       const fetchTasks = Array.from(selectedFetch.values());
 
       const succeeded = []; // items that updated DB successfully
 
-      // Helper to update one id with action, then collect for MQTT
       async function updateOne(t, actionName) {
         await new Promise((resolve) => {
           $.ajax({
@@ -257,8 +300,9 @@
             success: function() {
               succeeded.push({
                 id: t.id,
-                task: actionName, // "deliver" or "fetch"
-                student_id: t.student_id,
+                task: actionName,
+                rfid: t.rfid, // << use RFID
+                // student_id: t.student_id,
                 book_id: t.book_id,
                 location: t.location
               });
@@ -273,21 +317,20 @@
         });
       }
 
-      // 1) DB updates (sequential, preserves order)
+      // 1) DB updates (sequential)
       for (const t of deliverTasks) {
-        /* eslint-disable no-await-in-loop */
         await updateOne(t, 'deliver');
       }
       for (const t of fetchTasks) {
         await updateOne(t, 'fetch');
-      } /* eslint-enable no-await-in-loop */
+      }
 
       // 2) One MQTT publish with an array of mixed tasks
       if (succeeded.length > 0) {
         try {
           const payload = JSON.stringify(succeeded);
           var message = new Messaging.Message(payload);
-          message.destinationName = "LISA/RobotTaskBatch"; // array payload topic
+          message.destinationName = "LISA/RobotTask";
           message.qos = 0;
           client.send(message);
 
@@ -305,6 +348,54 @@
       selectedFetch.clear();
       updateGoButton();
       window.transactionsTable.ajax.reload(null, false);
+    });
+
+    // --- RETRY button: revert Delivering/Fetching -> To Deliver/To Fetch ---
+    $btnRetry.on('click', function() {
+      if (selectedRetry.size === 0) {
+        toastr.info('Mark at least one Delivering/Fetching row for retry.');
+        return;
+      }
+
+      const ids = Array.from(selectedRetry.keys());
+
+      $.ajax({
+        type: 'POST',
+        url: 'status_retry.php', // <-- server endpoint
+        data: {
+          ids: ids
+        }, // form-encoded: ids[]=1&ids[]=2
+        dataType: 'json',
+        cache: false,
+        // beforeSend: function() {
+        //   $btnRetry.prop('disabled', true);
+        // },
+        success: function(res) {
+          if (res && res.success) {
+            toastr.success(`Reverted ${res.affected} row(s).`);
+
+            const payload = "Disabled";
+            var message = new Messaging.Message(payload);
+            message.destinationName = "LISA/RobotMobility";
+            message.qos = 0;
+            message.retained = true;
+            client.send(message);
+
+          } else {
+            toastr.error(res && res.error ? res.error : 'Failed to revert.');
+          }
+        },
+        error: function(xhr) {
+          const msg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : 'Server error';
+          toastr.error(msg);
+        },
+        complete: function() {
+          // Clear retry marks and refresh table
+          selectedRetry.clear();
+          updateRetryButton();
+          window.transactionsTable.ajax.reload(null, false);
+        }
+      });
     });
 
   })();

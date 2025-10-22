@@ -211,8 +211,8 @@ client.on_connect = on_connect
 client.on_disconnect = on_disconnect
 client.on_message = on_message
 
-username = "mqtt"
-password = "ICPHmqtt!"
+username = "*****"
+password = "*****"
 client.username_pw_set(username, password)
 
 try:

@@ -22,8 +22,9 @@ try {
       t.borrow_date AS `Borrow Date`,
       t.return_date AS `Return Date`,
       t.status AS Status,
-      t.flag AS Flag,
-      t.location AS Location
+      t.flag   AS Flag,
+      t.location AS Location,
+      s.rfid_key AS rfid         -- << NEW
     FROM transactions t
     INNER JOIN books b ON b.book_id = t.book_id
     LEFT JOIN students s ON s.student_id = t.student_id
