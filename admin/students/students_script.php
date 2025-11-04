@@ -52,22 +52,20 @@
             return used;
           }
         },
-        // { // 6 Actions
-        //   data: null,
-        //   orderable: false,
-        //   searchable: false,
-        //   width: 140,
-        //   render: function(data, type, row) {
-        //     const sid = row.student_id ? String(row.student_id).replace(/"/g, '&quot;') : '';
-        //     return `
-        //       <div class="row-actions">
-
-        //         <button class="table-btn del" data-sid="${sid}" title="Delete">Delete</button>
-        //       </div>`;
-        //   }
-        // }
+        { // 6 Actions
+          data: null,
+          orderable: false,
+          searchable: false,
+          width: 140,
+          render: function(data, type, row) {
+            const sid = row.student_id ? String(row.student_id).replace(/"/g, '&quot;') : '';
+            return `
+              <div class="row-actions">
+                <button class="table-btn del" data-sid="${sid}" title="Delete">Delete</button>
+              </div>`;
+          }
+        }
       ],
-      // <button class="table-btn edit" data-sid="${sid}" title="Edit">Edit</button>
       columnDefs: [{
           targets: 0,
           visible: false,
@@ -104,16 +102,36 @@
       // TODO: open edit modal / navigate to edit page
       alert('Edit student: ' + sid);
     });
-
-    $table.on('click', '.icon-btn.del', function() {
+    $table.on('click', '.table-btn.del', function() {
       const sid = this.getAttribute('data-sid');
-      // TODO: implement delete (confirm + POST), then reload:
-      if (confirm(`Delete student ${sid}? This cannot be undone.`)) {
-        // Example:
-        // fetch('delete_student.php', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({student_id: sid})})
-        //   .then(r => r.json()).then(() => dt.ajax.reload(null, false));
-        alert('(stub) Deleted ' + sid);
+      if (!sid) {
+        alert('Missing student_id');
+        return;
       }
+      if (!confirm(`Delete student ${sid}? This cannot be undone.`)) return;
+      console.log('Deleting student', sid);
+
+      fetch('delete_student.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            student_id: sid
+          })
+        })
+        .then(r => r.json())
+        .then(res => {
+          if (!res || !res.ok) {
+            alert(res?.error || 'Delete failed.');
+            return;
+          }
+          // reload table but stay on the current page
+          dt.ajax.reload(null, false);
+          // optional: toast if you use toastr
+          // toastr.success(`Deleted ${sid}`);
+        })
+        .catch(() => alert('Server error while deleting.'));
     });
   })();
 </script>

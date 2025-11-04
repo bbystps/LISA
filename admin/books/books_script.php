@@ -49,7 +49,6 @@
             const sid = String(sidRaw).replace(/"/g, '&quot;'); // escape quotes for attr
             return `
             <div class="row-actions">
-              <button class="table-btn edit" data-sid="${sid}" title="Edit">Edit</button>
               <button class="table-btn del"  data-sid="${sid}" title="Delete">Delete</button>
             </div>`;
           }
@@ -80,13 +79,37 @@
       alert('Edit book: ' + sid);
     });
 
+
     $table.on('click', '.table-btn.del', function() {
-      const sid = this.getAttribute('data-sid');
-      if (confirm(`Delete book ${sid}? This cannot be undone.`)) {
-        alert('(stub) Deleted ' + sid);
-        // then: dt.ajax.reload(null, false);
+      const sid = this.getAttribute('data-sid'); // this is book_id (ISBN col)
+      if (!sid) {
+        alert('Missing book_id');
+        return;
       }
+      if (!confirm(`Delete book ${sid}? This cannot be undone.`)) return;
+
+      fetch('delete_book.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            book_id: sid
+          })
+        })
+        .then(r => r.json())
+        .then(res => {
+          if (!res || !res.ok) {
+            alert(res?.error || 'Delete failed.');
+            return;
+          }
+          // stay on same page of DataTable
+          dt.ajax.reload(null, false);
+          // toastr.success(`Deleted ${sid}`); // optional
+        })
+        .catch(() => alert('Server error while deleting.'));
     });
+
 
   })();
 </script>

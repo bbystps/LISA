@@ -211,12 +211,12 @@ client.on_connect = on_connect
 client.on_disconnect = on_disconnect
 client.on_message = on_message
 
-username = "*****"
-password = "*****"
-client.username_pw_set(username, password)
+# username = "*****"
+# password = "*****"
+# client.username_pw_set(username, password)
 
 try:
-    client.connect("13.214.212.87", 1883, keepalive=60)
+    client.connect("47.129.226.194", 1883, keepalive=60)
 except Exception as e:
     print(f"Failed to connect to MQTT broker: {e}")
     exit(1)

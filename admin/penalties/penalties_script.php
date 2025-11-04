@@ -35,6 +35,14 @@
 
           // KPIs
           $('#kpiTotal').text(peso(resp.kpis.total));
+          $('#kpiPaid').text(peso(resp.kpis.paid));
+          $('#kpiOutstanding').text(peso(resp.kpis.outstanding));
+
+          // Settings
+          if (resp.settings) {
+            $('#penaltyRate').val(resp.settings.daily_rate);
+            $('#gracePeriod').val(resp.settings.grace_days);
+          }
 
           // Table
           renderTable(resp.rows || []);
@@ -152,6 +160,33 @@
         });
       });
     }
+
+    // Save Settings
+    $('#btnSaveSettings').on('click', function() {
+      const rate = parseFloat($('#penaltyRate').val() || '0');
+      const grace = parseInt($('#gracePeriod').val() || '0', 10);
+
+      $.ajax({
+        type: 'POST',
+        url: 'update.php',
+        data: {
+          id: 0,
+          action: 'save_settings',
+          rate,
+          grace
+        },
+        success: function(resp) {
+          if (!resp?.success) {
+            alert(resp?.error || 'Failed to save');
+            return;
+          }
+          loadData(); // reload KPIs + rows with new settings (if you recalc on server later)
+        },
+        error: function(xhr) {
+          alert(xhr.responseText || 'Server error.');
+        }
+      });
+    });
 
     $(document).ready(loadData);
   })(jQuery);

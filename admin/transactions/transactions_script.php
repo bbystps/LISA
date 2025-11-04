@@ -170,7 +170,7 @@
     // Keep buttons in sync on redraw
     dt.on('draw', function() {
       updateGoButton();
-      // updateRetryButton(); // NEW
+      updateRetryButton(); // NEW
     });
 
     // --- Row button handler ---

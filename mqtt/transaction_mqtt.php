@@ -1,6 +1,6 @@
 <script>
     var i = 0;
-    var client = new Messaging.Client("13.214.212.87", 9001, "myclientid_" + parseInt(Math.random() * 100, 10));
+    var client = new Messaging.Client("47.129.226.194", 9001, "myclientid_" + parseInt(Math.random() * 100, 10));
     //a = new AudioContext(); // browsers limit the number of concurrent audio contexts,
 
     client.onConnectionLost = function(responseObject) {
@@ -29,8 +29,8 @@
     var options = {
         timeout: 3,
         keepAliveInterval: 60,
-        userName: '*****',
-        password: '*****',
+        // userName: '*****',
+        // password: '*****',
         onSuccess: function() {
             client.subscribe('LISA/TransactionUpdated', {
                 qos: 0
