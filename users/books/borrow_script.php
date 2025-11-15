@@ -191,6 +191,12 @@
             if (window.booksTable) window.booksTable.ajax.reload(null, false);
             $("#promptSuccess").text(res.message || "Borrow recorded successfully!");
             if (typeof openSuccessModal === 'function') openSuccessModal();
+
+            var message = new Messaging.Message("borrowed");
+            message.destinationName = "LISA/User";
+            message.qos = 0;
+            client.send(message);
+
           } else {
             $('#borrowInlineErr').text(res.message || 'Failed to borrow book.');
           }

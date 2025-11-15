@@ -61,6 +61,7 @@
             const sid = row.student_id ? String(row.student_id).replace(/"/g, '&quot;') : '';
             return `
               <div class="row-actions">
+                <button class="table-btn edit" data-sid="${sid}" title="Edit">Edit</button>
                 <button class="table-btn del" data-sid="${sid}" title="Delete">Delete</button>
               </div>`;
           }
@@ -92,9 +93,16 @@
     }, 200));
 
     // Open the registration modal
+    // $('#btnAddStudent').on('click', function() {
+    //   window.openStudentRegModal && window.openStudentRegModal(this);
+    // });
+
     $('#btnAddStudent').on('click', function() {
-      window.openStudentRegModal && window.openStudentRegModal(this);
+      window.openStudentRegModal && window.openStudentRegModal({
+        mode: 'create'
+      });
     });
+
 
     // Delegated handlers for Actions (you can replace with your own modals/routes)
     $table.on('click', '.icon-btn.edit', function() {
@@ -102,6 +110,7 @@
       // TODO: open edit modal / navigate to edit page
       alert('Edit student: ' + sid);
     });
+
     $table.on('click', '.table-btn.del', function() {
       const sid = this.getAttribute('data-sid');
       if (!sid) {
@@ -133,5 +142,24 @@
         })
         .catch(() => alert('Server error while deleting.'));
     });
+
+    $table.on('click', '.table-btn.edit', function() {
+      const tr = $(this).closest('tr');
+      const rowData = dt.row(tr).data(); // ← get the full row object
+      if (!rowData) return;
+
+      // Open modal in EDIT mode, reuse the same form
+      window.openStudentRegModal && window.openStudentRegModal({
+        mode: 'edit',
+        data: {
+          rfid_key: rowData.rfid || '', // adjust key names to match your server payload
+          student_id: rowData.student_id || '',
+          name: rowData.name || '',
+          email: rowData.email || '',
+          course: rowData.course || ''
+        }
+      });
+    });
+
   })();
 </script>

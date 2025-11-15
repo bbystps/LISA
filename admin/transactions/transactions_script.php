@@ -133,6 +133,11 @@
                 const isMarked = selectedRetry.has(id);
                 label = isMarked ? 'Retry Selected' : 'Mark Retry';
                 disabled = false;
+              } else if (status === 'reserved') {
+                // NEW: Reserved → show Cancel
+                label = 'Cancel';
+                action = 'cancel';
+                disabled = false;
               }
             }
 
@@ -241,7 +246,7 @@
       }
 
       // 2) EXISTING SINGLE-ROW ACTIONS
-      if (action === 'ack' || action === 'fetch' || action === 'ack_returned') {
+      if (action === 'ack' || action === 'fetch' || action === 'ack_returned' || action === 'cancel') {
         $.ajax({
           type: 'POST',
           url: 'status_update.php',

@@ -79,6 +79,7 @@
       <div class="modal__body">
         <!-- your provided form -->
         <form id="studentRegForm" action="register.php" method="post" novalidate>
+          <input type="hidden" id="original_id" name="original_id" value="">
           <fieldset>
             <div class="row">
               <div class="ctr">

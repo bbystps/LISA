@@ -48,9 +48,10 @@
             const sidRaw = row.ISBN ?? '';
             const sid = String(sidRaw).replace(/"/g, '&quot;'); // escape quotes for attr
             return `
-            <div class="row-actions">
-              <button class="table-btn del"  data-sid="${sid}" title="Delete">Delete</button>
-            </div>`;
+              <div class="row-actions">
+                <button class="table-btn edit" data-sid="${sid}" title="Edit">Edit</button>
+                <button class="table-btn del"  data-sid="${sid}" title="Delete">Delete</button>
+              </div>`;
           }
 
         } // 5 
@@ -109,6 +110,21 @@
         })
         .catch(() => alert('Server error while deleting.'));
     });
+
+    // Use the existing dt variable from your DataTable init
+    $table.on('click', '.table-btn.edit', function() {
+      const tr = $(this).closest('tr');
+      const row = dt.row(tr).data();
+      if (!row) return;
+
+      // row has { ISBN, Title, Author, Category, Status, ... }
+      if (window.enterEditMode) {
+        window.enterEditMode(row);
+      } else {
+        alert('Edit mode is not available. Check modal_script.js is loaded.');
+      }
+    });
+
 
 
   })();

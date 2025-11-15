@@ -1,27 +1,37 @@
+<!-- Load this AFTER jQuery and your table scripts -->
 <script>
   (function() {
+    // ---------- Modal DOM ----------
     const modal = document.getElementById('bookRegModal');
     const dialog = modal.querySelector('.modal__dialog');
     const overlay = modal.querySelector('.modal__overlay');
     const btnOpen = document.getElementById('btnAddBook');
     const btnCloseEls = modal.querySelectorAll('[data-close-modal]');
 
-    const form = document.getElementById('studentRegForm'); // kept to match your HTML
+    // ---------- Form + UI ----------
+    const form = document.getElementById('studentRegForm'); // (id kept from your HTML)
     const submitBtn = document.getElementById('regSubmitBtn');
     const alertBox = document.getElementById('formAlert');
+    const modalTitle = document.getElementById('reg_title');
 
-    // Inputs (BOOK FIELDS ONLY)
+    // Fields
     const bookIdEl = form.querySelector('#book_id');
     const titleEl = form.querySelector('#title');
     const authorEl = form.querySelector('#author');
     const categoryEl = form.querySelector('#category');
+    // hidden original_id (add in HTML): <input type="hidden" id="original_id" name="original_id" />
+    const originalIdEl = form.querySelector('#original_id');
 
+    // Accessibility helpers
     let lastFocused = null;
-
-    // Inert everything except the modal when open
     const inertTargets = Array.from(document.body.children).filter(el => el !== modal);
 
-    // ---------------- Utilities ----------------
+    // Mode: 'add' | 'edit'
+    let mode = 'add';
+
+    // =========================================================
+    // Utilities
+    // =========================================================
     function setErr(id, msg) {
       const p = form.querySelector(`.err-msg[data-err-for="${id}"]`);
       if (p) p.textContent = msg || '';
@@ -60,7 +70,7 @@
       clearErrors();
       let ok = true;
 
-      // Built-in constraint validation
+      // Native constraint validation
       if (!form.checkValidity()) {
         Array.from(form.elements).forEach(el => {
           if (!el.checkValidity() && el.id) {
@@ -70,7 +80,7 @@
         });
       }
 
-      // Extra guardrails (optional, mirrors server rules loosely)
+      // Extra guardrails
       if (bookIdEl && bookIdEl.value.trim().length < 3) {
         ok = false;
         setErr('book_id', 'Please provide at least 3 characters.');
@@ -91,7 +101,9 @@
       return ok;
     }
 
-    // ---------------- Focus trap ----------------
+    // =========================================================
+    // Focus Trap
+    // =========================================================
     function keydownTrap(e) {
       if (!modal.classList.contains('is-open')) return;
       const focusable = modal.querySelectorAll(
@@ -120,7 +132,9 @@
       else document.removeEventListener('keydown', keydownTrap);
     }
 
-    // ---------------- Open / Close ----------------
+    // =========================================================
+    // Open / Close
+    // =========================================================
     function openModal() {
       lastFocused = document.activeElement;
 
@@ -128,6 +142,7 @@
       modal.setAttribute('aria-hidden', 'false');
 
       inertTargets.forEach(el => {
+        // Some browsers support element.inert, some don’t; still add aria-hidden
         el.inert = true;
         el.setAttribute('aria-hidden', 'true');
       });
@@ -163,15 +178,58 @@
       if (lastFocused) lastFocused.focus();
     }
 
-    // Expose for external calls
-    window.closeBookRegModal = closeModal;
+    // =========================================================
+    // Modes
+    // =========================================================
+    function enterAddMode() {
+      mode = 'add';
+      modalTitle.textContent = 'Book Registration';
+      submitBtn.textContent = 'Register Book';
+      form.action = 'register.php';
+      form.reset();
+      clearErrors();
+      if (originalIdEl) originalIdEl.value = '';
+      bookIdEl.disabled = false;
+    }
 
-    // ---------------- Wire events ----------------
-    if (btnOpen) btnOpen.addEventListener('click', openModal);
+    function enterEditMode(row) {
+      mode = 'edit';
+      modalTitle.textContent = 'Edit Book';
+      submitBtn.textContent = 'Save Changes';
+      form.action = 'update_book.php';
+      clearErrors();
+
+      // Prefill from DataTable row
+      bookIdEl.value = row.ISBN || '';
+      titleEl.value = row.Title || '';
+      authorEl.value = row.Author || '';
+      categoryEl.value = row.Category || '';
+
+      if (originalIdEl) originalIdEl.value = row.ISBN || '';
+
+      // Keep primary key immutable (safer). Allow if you prefer.
+      bookIdEl.disabled = true;
+
+      openModal();
+    }
+
+    // =========================================================
+    // Wire UI
+    // =========================================================
+    if (btnOpen) btnOpen.addEventListener('click', () => {
+      enterAddMode();
+      openModal();
+    });
     btnCloseEls.forEach(b => b.addEventListener('click', closeModal));
     if (overlay) overlay.addEventListener('click', closeModal);
 
-    // ---------------- jQuery AJAX submit ----------------
+    // Expose for other scripts (e.g., books_script calls enterEditMode(row))
+    window.enterEditMode = enterEditMode;
+    window.enterAddMode = enterAddMode;
+
+    // =========================================================
+    // Submit (AJAX)
+    // =========================================================
     $(form).on('submit', function(e) {
       e.preventDefault();
 
@@ -181,7 +239,14 @@
         return;
       }
 
+      // If ISBN is disabled, temporarily enable so FormData includes it
+      const wasDisabled = bookIdEl.disabled;
+      if (wasDisabled) bookIdEl.disabled = false;
+
       const fd = new FormData(form);
+
+      if (wasDisabled) bookIdEl.disabled = true;
+
       submitBtn.disabled = true;
       if (alertBox) {
         alertBox.textContent = '';
@@ -190,7 +255,7 @@
 
       $.ajax({
         type: 'POST',
-        url: form.action || 'register.php', // /admin/books/register.php
+        url: form.action, // register.php or update_book.php
         data: fd,
         processData: false,
         contentType: false,
@@ -202,26 +267,27 @@
         },
         success: function(res) {
           if (!res || res.ok !== true) {
-            paintServerErrors((res && res.errors) ? res.errors : {
+            paintServerErrors(res?.errors ? res.errors : {
               form: 'Please fix the errors and try again.'
             });
             return;
           }
 
-          // Success UX
           form.reset();
           clearErrors();
           if (alertBox) {
-            alertBox.textContent = 'Book added successfully!';
+            alertBox.textContent = (mode === 'add') ?
+              'Book added successfully!' :
+              'Book updated successfully!';
             alertBox.classList.add('show');
           }
 
-          // Refresh DataTable (if present)
+          // Refresh DataTable without resetting page
           if ($.fn.DataTable && $('#booksTable').length) {
-            $('#booksTable').DataTable().ajax.reload(null, false); // keep paging
+            $('#booksTable').DataTable().ajax.reload(null, false);
           }
 
-          setTimeout(() => closeModal(), 500);
+          setTimeout(() => closeModalPatched(), 400);
         },
         error: function(xhr) {
           if (xhr.responseJSON && xhr.responseJSON.errors) {
@@ -238,5 +304,20 @@
         }
       });
     });
+
+    // =========================================================
+    // Close behavior: always reset to Add mode defaults
+    // =========================================================
+    const _origClose = closeModal;
+
+    function closeModalPatched() {
+      _origClose();
+      enterAddMode(); // reset labels/action for the next open
+    }
+    window.closeBookRegModal = closeModalPatched;
+
+    // Replace internal close reference so everything uses the patched one
+    closeModal = closeModalPatched;
+
   })();
 </script>

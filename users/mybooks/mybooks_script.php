@@ -230,6 +230,11 @@
               // Re-fetch to keep counters/rows accurate
 
               loadMyActive();
+
+              var message = new Messaging.Message("returned");
+              message.destinationName = "LISA/User";
+              message.qos = 0;
+              client.send(message);
             } else {
               alert(res.message || 'Action failed.');
               btn.disabled = false;

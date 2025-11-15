@@ -1,6 +1,6 @@
 <script>
     var i = 0;
-    var client = new Messaging.Client("47.129.226.194", 9001, "myclientid_" + parseInt(Math.random() * 100, 10));
+    var client = new Messaging.Client("13.214.212.87", 9001, "myclientid_" + parseInt(Math.random() * 100, 10));
     //a = new AudioContext(); // browsers limit the number of concurrent audio contexts,
 
     client.onConnectionLost = function(responseObject) {
@@ -29,13 +29,16 @@
     var options = {
         timeout: 3,
         keepAliveInterval: 60,
-        // userName: '*****',
-        // password: '*****',
+        userName: '*****',
+        password: '*****',
         onSuccess: function() {
             client.subscribe('LISA/TransactionUpdated', {
                 qos: 0
             });
             client.subscribe('LISA/RobotMobility', {
+                qos: 0
+            });
+            client.subscribe('LISA/User', {
                 qos: 0
             });
             toastr.success('', 'Server OK!');
@@ -72,10 +75,56 @@
         //a = new AudioContext(); // browsers limit the number of concurrent audio contexts,
         if (message.destinationName == "LISA/TransactionUpdated") {
             // toastr.success('Transaction', x);
+
+            const x = message.payloadString;
+            let data;
+            try {
+                data = JSON.parse(x);
+            } catch (e) {
+                console.warn("Non-JSON or malformed payload:", x);
+                return;
+            }
+
+            // Only toast/reload if something actually changed
+            const updated = Number(data?.updated_rows || 0);
+            if (updated <= 0) return;
+
+            const loc = String(data?.location || "").trim();
+            const studentId = data?.student_id;
+            const txnId = data?.transaction_id;
+            const statusRaw = data?.status;
+
+            // Normalize status (Delivered/Returned)
+            const status = typeof statusRaw === "string" ?
+                statusRaw.charAt(0).toUpperCase() + statusRaw.slice(1).toLowerCase() :
+                statusRaw;
+
+            let msg = null;
+
+            if ((loc === "TableA" || loc === "TableB") && studentId) {
+                msg = `Student with ID ${studentId} has sat at ${loc}.`;
+            } else if (loc === "Entrance" && studentId) {
+                msg = `Student with ID ${studentId} has entered the library.`;
+            } else if (loc === "Robot" && txnId && status) {
+                msg = `Transaction ID ${txnId} has been successfully ${status}.`;
+            }
+
+            if (msg) {
+                toastr.success(msg, "Transaction");
+            }
+
             // ✅ reload only the table data (stay on same page)
             if (window.transactionsTable) {
                 window.transactionsTable.ajax.reload(null, false);
             }
+
+        } else if (message.destinationName == "LISA/User") {
+
+            // ✅ reload only the table data (stay on same page)
+            if (window.transactionsTable) {
+                window.transactionsTable.ajax.reload(null, false);
+            }
+
         } else if (message.destinationName == "LISA/RobotMobility") {
             if (x == "Enabled") {
                 // Disable Go Button

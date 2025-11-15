@@ -23,9 +23,13 @@ $studentId = $_SESSION['user']['student_id'];
   <link rel="stylesheet" href="../../includes/css/users.css">
   <link rel="stylesheet" href="../../includes/css/user_modal.css">
   <link rel="stylesheet" href="../../includes/css/icon.css">
+  <link rel="stylesheet" href="../../plugins/toastr/toastr.css">
 </head>
 
-<body>
+<script src="../../mqtt/mqttws31.js"></script>
+<?php include("../../mqtt/user_mqtt.php"); ?>
+
+<body onload="client.connect(options);">
   <div class="app">
 
     <?php include("../sidenav.php"); ?>
@@ -119,8 +123,8 @@ $studentId = $_SESSION['user']['student_id'];
     </div>
   </div>
 
-
   <script src="../../includes/js/jquery.min.js"></script>
+  <script src="../../plugins/toastr/toastr.min.js"></script>
   <script src="../../plugins/datatables/datatables.js"></script>
 
   <?php include("../sidenav_script.php"); ?>
